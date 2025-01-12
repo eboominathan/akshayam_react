@@ -6,45 +6,50 @@ import React, { useContext, useState } from "react";
 import { useParams } from "react-router-dom";
 import GlobalApi from "../../../../../../../service/GlobalApi";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@radix-ui/react-select";
 
 function FamilyDetail({ enableNext }) {
   const params = useParams();
   const { customerInfo, setCustomerInfo } = useContext(CustomerInfoContext);
-  const [formData, setFormData] = useState(customerInfo || {});
+  const [familyMembers, setFamilyMembers] = useState(customerInfo?.familyMembers || []);
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e) => {
-    enableNext(false);
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    setCustomerInfo({ ...customerInfo, [name]: value });
+  // Add a new empty family member
+  const handleAddMore = () => {
+    setFamilyMembers([
+      ...familyMembers,
+      { first_name: "", last_name: "", dob: "", gender: "" },
+    ]);
   };
 
-  const handleSelectChange = (value) => {
+  // Handle input change for a specific family member
+  const handleInputChange = (index, e) => {
     enableNext(false);
-    setFormData({ ...formData, gender: value });
-    setCustomerInfo({ ...customerInfo, gender: value });
+    const { name, value } = e.target;
+    const updatedMembers = [...familyMembers];
+    updatedMembers[index][name] = value;
+    setFamilyMembers(updatedMembers);
+    setCustomerInfo({ ...customerInfo, familyMembers: updatedMembers });
+  };
+
+  // Remove a specific family member
+  const handleRemove = (index) => {
+    const updatedMembers = familyMembers.filter((_, i) => i !== index);
+    setFamilyMembers(updatedMembers);
+    setCustomerInfo({ ...customerInfo, familyMembers: updatedMembers });
   };
 
   const onSave = (e) => {
     e.preventDefault();
     setLoading(true);
-    GlobalApi.UpdateCustomerDetail(params?.customerId, formData).then(
+    GlobalApi.UpdateCustomerDetail(params?.customerId, { familyMembers }).then(
       (res) => {
-        toast("Details updated");
+        toast("Family details updated");
         enableNext(true);
         setLoading(false);
       },
       (error) => {
         setLoading(false);
-        toast.error("Failed to update details");
+        toast.error("Failed to update family details");
       }
     );
   };
@@ -54,54 +59,67 @@ function FamilyDetail({ enableNext }) {
       <h2 className="text-lg font-bold">Family Details</h2>
       <p>Family information</p>
       <form onSubmit={onSave}>
-        <div className="grid grid-cols-2 gap-3 mt-5">
-          <div>
-            <label className="text-sm font-bold">First Name</label>
-            <Input
-              name="first_name"
-              required
-              onChange={handleInputChange}
-              defaultValue={formData?.first_name}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-bold">Last Name</label>
-            <Input
-              name="last_name"
-              required
-              onChange={handleInputChange}
-              defaultValue={formData?.last_name}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-bold">Date Of Birth</label>
-            <Input
-              name="dob"
-              type="date"
-              required
-              onChange={handleInputChange}
-              defaultValue={formData?.dob}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-bold">Gender</label>
-            <Select
-              value={formData?.gender || ""}
-              onValueChange={handleSelectChange}
+        {familyMembers.map((member, index) => (
+          <div key={index} className="relative grid grid-cols-2 gap-3 p-3 mt-5 border rounded-lg">
+            <button
+              type="button"
+              className="absolute text-red-500 top-2 right-2 hover:text-red-700"
+              onClick={() => handleRemove(index)}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            
+              Remove
+            </button>
+            <div>
+              <label className="text-sm font-bold">First Name</label>
+              <Input
+                name="first_name"
+                required
+                onChange={(e) => handleInputChange(index, e)}
+                value={member.first_name}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-bold">Last Name</label>
+              <Input
+                name="last_name"
+                required
+                onChange={(e) => handleInputChange(index, e)}
+                value={member.last_name}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-bold">Date Of Birth</label>
+              <Input
+                name="dob"
+                type="date"
+                required
+                onChange={(e) => handleInputChange(index, e)}
+                value={member.dob}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-bold">Gender</label>
+              <Input
+                name="gender"
+                required
+                onChange={(e) => handleInputChange(index, e)}
+                value={member.gender}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-bold">Relationship</label>
+              <Input
+                name="relationship"
+                required
+                onChange={(e) => handleInputChange(index, e)}
+                value={member.relationship}
+              />
+            </div>
           </div>
-        </div>
-        <div className="mt-5">
+        ))}
+        <div className="flex mt-5 space-x-3">
+          <Button type="button" onClick={handleAddMore}>
+            Add More
+          </Button>
           <Button type="submit" disabled={loading}>
             {loading ? <LoaderCircle className="animate-spin" /> : "Save"}
           </Button>
