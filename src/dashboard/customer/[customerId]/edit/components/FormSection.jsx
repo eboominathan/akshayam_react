@@ -2,12 +2,9 @@ import React, { useState } from 'react'
 import PersonalDetail from './forms/PersonalDetail'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight, Home, LayoutGrid } from 'lucide-react'
-// import Summary from './forms/Summary';
-// import Experience from './forms/Experience';
-// import Education from './forms/Education';
-// import Skills from './forms/Skills';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import ThemeColor from './ThemeColor';
+import FamilyDetail from './forms/FamilyDetail';
 
 function FormSection() {
   const [activeFormIndex,setActiveFormIndex]=useState(1);
@@ -38,7 +35,15 @@ function FormSection() {
            >Next <ArrowRight /></Button>
         </div>
       </div>
- 
+      {activeFormIndex==1?  
+        <PersonalDetail enableNext={(v)=>setEnableNext(v)} />
+        :activeFormIndex==2?      
+        <FamilyDetail enableNext={(v)=>setEnableNext(v)} />
+        :activeFormIndex==3?      
+          <Navigate to={'/my-customer/'+customerId+"/view"}/>
+              
+        :null
+          }
     
     </div>
   )

@@ -79,8 +79,8 @@ function CustomerCardItem({customer,refreshData}) {
            
             <DropdownMenuItem  onClick={()=>navigation('/dashboard/customer/'+customer.id+"/edit")}>Edit</DropdownMenuItem>
             <DropdownMenuItem onClick={()=>navigation('/my-customer/'+customer.id+"/view")}>View</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>navigation('/my-customer/'+customer.id+"/view")}>Download</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>setOpenAlert(true)}>Delete</DropdownMenuItem>
+            {/* <DropdownMenuItem onClick={()=>navigation('/my-customer/'+customer.id+"/view")}>Download</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>setOpenAlert(true)}>Delete</DropdownMenuItem> */}
             
           </DropdownMenuContent>
         </DropdownMenu>

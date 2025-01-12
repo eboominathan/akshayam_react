@@ -9,7 +9,7 @@ import GlobalApi from  '../../../../../service/GlobalApi'
 
 function EditCustomer() {
   const params = useParams();  
-  const [CustomerInfo,setCustomerInfo] = useState(); 
+  const [customerInfo,setCustomerInfo] = useState(); 
   useEffect(()=>{       
     GetCustomerInfo();
 },[])
@@ -22,7 +22,7 @@ const GetCustomerInfo=()=>{
 }
   
   return (
-    <CustomerInfoContext.Provider value={{ CustomerInfo, setCustomerInfo }}>
+    <CustomerInfoContext.Provider value={{ customerInfo, setCustomerInfo }}>
       <div className="grid grid-cols-1 gap-10 p-10 md:grid-cols-2">
         <FormSection />
         <CustomerPreview />
