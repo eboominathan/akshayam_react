@@ -2,7 +2,7 @@ import { CustomerInfoContext } from "@/context/CustomerInfoContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoaderCircle } from "lucide-react";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import GlobalApi from "../../../../../../../service/GlobalApi";
 import { toast } from "sonner";
@@ -17,9 +17,13 @@ function FamilyDetail({ enableNext }) {
   const handleAddMore = () => {
     setFamilyMembers([
       ...familyMembers,
-      { first_name: "", last_name: "", dob: "", gender: "" },
+      { id: "", first_name: "", last_name: "", dob: "", gender: "", relationship: "", phone: "", image: "" },
     ]);
   };
+
+  useEffect(() => {
+    customerInfo?.family?.length > 0 && setFamilyMembers(customerInfo?.family);
+  }, []);
 
   // Handle input change for a specific family member
   const handleInputChange = (index, e) => {
@@ -29,6 +33,21 @@ function FamilyDetail({ enableNext }) {
     updatedMembers[index][name] = value;
     setFamilyMembers(updatedMembers);
     setCustomerInfo({ ...customerInfo, familyMembers: updatedMembers });
+  };
+
+  // Handle image upload for a specific family member
+  const handleImageUpload = (index, e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const updatedMembers = [...familyMembers];
+        updatedMembers[index].photo = reader.result; // Save the image data (base64 string)
+        setFamilyMembers(updatedMembers);
+        setCustomerInfo({ ...customerInfo, familyMembers: updatedMembers });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Remove a specific family member
@@ -41,7 +60,7 @@ function FamilyDetail({ enableNext }) {
   const onSave = (e) => {
     e.preventDefault();
     setLoading(true);
-    GlobalApi.UpdateCustomerDetail(params?.customerId, { familyMembers }).then(
+    GlobalApi.UpdateFamilyDetail(params?.customerId, { familyMembers }).then(
       (res) => {
         toast("Family details updated");
         enableNext(true);
@@ -68,6 +87,13 @@ function FamilyDetail({ enableNext }) {
             >
               Remove
             </button>
+            <Input
+              name="id"
+              type="hidden"
+              required
+              onChange={(e) => handleInputChange(index, e)}
+              value={member.id}
+            />
             <div>
               <label className="text-sm font-bold">First Name</label>
               <Input
@@ -81,7 +107,6 @@ function FamilyDetail({ enableNext }) {
               <label className="text-sm font-bold">Last Name</label>
               <Input
                 name="last_name"
-                required
                 onChange={(e) => handleInputChange(index, e)}
                 value={member.last_name}
               />
@@ -91,7 +116,6 @@ function FamilyDetail({ enableNext }) {
               <Input
                 name="dob"
                 type="date"
-                required
                 onChange={(e) => handleInputChange(index, e)}
                 value={member.dob}
               />
@@ -100,7 +124,6 @@ function FamilyDetail({ enableNext }) {
               <label className="text-sm font-bold">Gender</label>
               <Input
                 name="gender"
-                required
                 onChange={(e) => handleInputChange(index, e)}
                 value={member.gender}
               />
@@ -109,10 +132,28 @@ function FamilyDetail({ enableNext }) {
               <label className="text-sm font-bold">Relationship</label>
               <Input
                 name="relationship"
-                required
                 onChange={(e) => handleInputChange(index, e)}
                 value={member.relationship}
               />
+            </div>
+            <div>
+              <label className="text-sm font-bold">Phone</label>
+              <Input
+                name="phone"
+                onChange={(e) => handleInputChange(index, e)}
+                value={member.phone}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-bold">Upload Image</label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(index, e)}
+              />
+              {member.photo && (
+                <img src={member.photo} alt="Uploaded" className="w-20 h-20 mt-2 rounded-full" />
+              )}
             </div>
           </div>
         ))}

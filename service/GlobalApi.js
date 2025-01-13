@@ -23,11 +23,15 @@ const GetCustomerById=(id)=>axiosClient.get('/customer-details/'+id+"?populate=*
 
 const DeleteCustomerById=(id)=>axiosClient.delete('/customer-details/'+id)
 
+/*  Family Details  */
+const UpdateFamilyDetail=(id,data)=>axiosClient.put('/family-details/'+id,data)
+
 export default{
     RegisterUser,
     CreateNewCustomer,
     GetUserCustomers,
     UpdateCustomerDetail,
     GetCustomerById,
-    DeleteCustomerById
+    DeleteCustomerById,
+    UpdateFamilyDetail 
 }

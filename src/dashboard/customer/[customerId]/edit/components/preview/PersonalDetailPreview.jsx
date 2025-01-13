@@ -21,11 +21,11 @@ function PersonalDetailPreview({ customerInfo }) {
             <h2 className='text-xs font-normal'
              style={{
                 color:customerInfo?.theme_color
-            }}>{customerInfo?.phone}</h2>
+            }}><b>Mobile Number : </b>{customerInfo?.phone}</h2>
             <h2 className='text-xs font-normal'
              style={{
                 color:customerInfo?.theme_color
-            }}>{customerInfo?.email}</h2>
+            }}><b>Email :</b>{customerInfo?.email}</h2>
 
         </div>
         <hr className='border-[1.5px] my-2'

@@ -35,21 +35,20 @@ function ThemeColor() {
     "#335AFF",
   ];
 
-  const { CustomerInfo, setCustomerInfo } = useContext(CustomerInfoContext);
+  const { customerInfo, setCustomerInfo } = useContext(CustomerInfoContext);
   const [selectedColor, setSelectedColor] = useState();
-  const { CustomerId } = useParams();
+  const { customerId } = useParams();
   
   const onColorSelect = (color) => {
     setSelectedColor(color);
     setCustomerInfo({
-      ...CustomerInfo,
+      ...customerInfo,
       theme_color: color,
     });
     const data = {    
       theme_color: color,     
     };
-    GlobalApi.UpdateCustomerDetail(CustomerId, data).then((resp) => {
-      console.log(resp);
+    GlobalApi.UpdateCustomerDetail(customerId, data).then((resp) => {   
       toast("Theme Color Updated");
     });
   };

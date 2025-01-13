@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { CustomerInfoContext } from '@/context/CustomerInfoContext';
 import PersonalDetailPreview from "./preview/PersonalDetailPreview";
+import FamilyDetailPreview from "./preview/FamilyDetailPreview";
 
 function CustomerPreview() {
 
@@ -14,6 +15,8 @@ function CustomerPreview() {
   >  
       {/* Personal Detail  */}
       <PersonalDetailPreview customerInfo={customerInfo} />
+      {/* Family Detail  */}
+      <FamilyDetailPreview customerInfo={customerInfo} />
       
     </div>
   )
