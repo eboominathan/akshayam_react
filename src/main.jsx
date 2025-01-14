@@ -8,6 +8,7 @@ import Home from './home'
 import Dashboard from './dashboard'
 import { ClerkProvider } from '@clerk/clerk-react'
 import EditCustomer from './dashboard/customer/[customerId]/edit'
+import ViewCustomer from './my-customer/[customerId]/view'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!PUBLISHABLE_KEY) {
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
     {
       path: '/auth/sign-in',
       element: <SignInPage />,
+    },  
+    {
+      path:'/my-customer/:customerId/view',
+      element:<ViewCustomer/>
     }
 ])
 createRoot(document.getElementById('root')).render(

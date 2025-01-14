@@ -1,7 +1,6 @@
 import React from 'react';
 
 function FamilyDetailPreview({ customerInfo }) {
-
   const formatDate = (date) => {
     if (!date) return ''; // Handle null or undefined dates
     const parts = date.split('-'); // Assuming date is in YYYY-MM-DD format
@@ -11,7 +10,7 @@ function FamilyDetailPreview({ customerInfo }) {
   return (
     <div className="my-6">
       <h2
-        className="mb-2 text-sm font-bold text-left"
+        className="mb-4 text-lg font-bold text-left"
         style={{
           color: customerInfo?.theme_color,
         }}
@@ -19,50 +18,63 @@ function FamilyDetailPreview({ customerInfo }) {
         Family Details
       </h2>
       <hr
+        className="mb-4"
         style={{
           borderColor: customerInfo?.theme_color,
         }}
       />
-      {customerInfo?.family?.length > 0 && (
-        <table className="w-full my-5 text-left border border-collapse border-gray-300">
-          <thead>
-            <tr style={{ color: customerInfo?.theme_color }}>
-              <th className="px-4 py-2 border border-gray-300">Image</th>
-              <th className="px-4 py-2 border border-gray-300">Name</th>              
-              <th className="px-4 py-2 border border-gray-300">Date of Birth</th>
-              <th className="px-4 py-2 border border-gray-300">Relationship</th>
-              <th className="px-4 py-2 border border-gray-300">Phone</th>
-              <th className="px-4 py-2 border border-gray-300">Gender</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customerInfo?.family?.map((famil, index) => (
-              <tr key={index}>
-                <td className="px-4 py-2 border border-gray-300">
-                  {famil?.photo ? (
-                    <img
-                      src={famil.photo}
-                      alt={`${famil?.first_name} ${famil?.last_name}'s photo`}
-                      className="object-cover w-16 h-16 rounded-full"
-                    />
-                  ) : (
-                    <span>No photo</span>
-                  )}
-                </td>
-                <td className="px-4 py-2 border border-gray-300">
-                  {famil?.first_name} {famil?.last_name}
-                </td>
-                <td className="px-4 py-2 border border-gray-300">{formatDate(famil?.dob)}</td>
-                <td className="px-4 py-2 border border-gray-300">{famil?.relationship}</td>
-                <td className="px-4 py-2 border border-gray-300">{famil?.phone}</td>
-                <td
-                  className="px-4 py-2 border border-gray-300"
-                  dangerouslySetInnerHTML={{ __html: famil?.gender }}
-                />
+      {customerInfo?.family?.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full border border-collapse border-gray-300 rounded-lg shadow-md">
+            <thead>
+              <tr
+                style={{ backgroundColor: customerInfo?.theme_color, color: 'white' }}
+                className="text-sm uppercase"
+              >
+                <th className="px-3 py-3 text-left"></th>
+                <th className="px-6 py-3 text-left">Name</th>
+                <th className="px-6 py-3 text-left">Date of Birth</th>
+                <th className="px-6 py-3 text-left">Relationship</th>
+                <th className="px-6 py-3 text-left">Phone</th>
+                <th className="px-6 py-3 text-left">Gender</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {customerInfo?.family?.map((famil, index) => (
+                <tr
+                  key={index}
+                  className={`text-sm ${
+                    index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                  } hover:bg-gray-100`}
+                >
+                  <td className="px-6 py-3 border-t border-gray-300">
+                    {famil?.photo ? (
+                      <img
+                        src={famil.photo}
+                        alt={`${famil?.first_name} ${famil?.last_name}'s photo`}
+                        className="object-cover w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <span className="italic text-gray-500"></span>
+                    )}
+                  </td>
+                  <td className="px-6 py-3 border-t border-gray-300">
+                    {famil?.first_name} {famil?.last_name}
+                  </td>
+                  <td className="px-6 py-3 border-t border-gray-300">{formatDate(famil?.dob)}</td>
+                  <td className="px-6 py-3 border-t border-gray-300">{famil?.relationship}</td>
+                  <td className="px-6 py-3 border-t border-gray-300">{famil?.phone}</td>
+                  <td
+                    className="px-6 py-3 border-t border-gray-300"
+                    dangerouslySetInnerHTML={{ __html: famil?.gender }}
+                  />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="italic text-gray-500">No family details available.</p>
       )}
     </div>
   );
