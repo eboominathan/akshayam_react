@@ -26,6 +26,9 @@ const DeleteCustomerById=(id)=>axiosClient.delete('/customer-details/'+id)
 /*  Family Details  */
 const UpdateFamilyDetail=(id,data)=>axiosClient.put('/family-details/'+id,data)
 
+/* Street Name suggestions  */
+const fetchSuggestions=(field, query)=>axiosClient.get(`/get-street-names?field=${field}&query=${query}`)
+
 export default{
     RegisterUser,
     CreateNewCustomer,
@@ -33,5 +36,6 @@ export default{
     UpdateCustomerDetail,
     GetCustomerById,
     DeleteCustomerById,
-    UpdateFamilyDetail 
+    UpdateFamilyDetail,
+    fetchSuggestions 
 }

@@ -27,9 +27,7 @@ function AddCustomer() {
     const uuid = uuidv4();
     const data = {      
         customerId: uuid,
-        title: CustomerTitle,
-        userEmail: user?.primaryEmailAddress?.emailAddress,
-        userName: user?.fullName       
+        title: CustomerTitle          
     };
     GlobalApi.CreateNewCustomer(data).then(
       (resp) => {       
