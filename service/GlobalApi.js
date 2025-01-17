@@ -15,7 +15,8 @@ if(localStorage.getItem('token')){
 const RegisterUser=(data)=>axiosClient.post('/users',data);
 const CreateNewCustomer=(data)=>axiosClient.post('/customer-details',data);
 
-const GetUserCustomers=()=>axiosClient.get('/customer-details');
+
+const GetUserCustomers = (params = {}) => axiosClient.get('/customer-details', { params });
 
 const UpdateCustomerDetail=(id,data)=>axiosClient.put('/customer-details/'+id,data)
 
@@ -30,7 +31,8 @@ const UpdateFamilyDetail=(id,data)=>axiosClient.put('/family-details/'+id,data)
 const fetchSuggestions=(field, query)=>axiosClient.get(`/get-street-names?field=${field}&query=${query}`)
 
 /* Search Customer */
-const SearchCustomers=(query)=>axiosClient.get(`/get-customer?query=${query}`)
+const SearchCustomers = (query, page = 1) =>
+    axiosClient.get(`/get-customer`, { params: { query, page } });
 
 export default{
     RegisterUser,

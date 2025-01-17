@@ -9,6 +9,8 @@ function Dashboard() {
   const [customerList, setCustomerList] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const loggedUser = {
     firstName: user?.firstName,
@@ -27,38 +29,53 @@ function Dashboard() {
   useEffect(() => {
     if (user) {
       RegisterUser();
-      GetCustomersList();
+      GetCustomersList(currentPage);
     }
-  }, [user, RegisterUser]);
+  }, [user, RegisterUser, currentPage]);
 
-  /*
-   * Get Customer List
-   */
-  const GetCustomersList = () => {
-    GlobalApi.GetUserCustomers().then((resp) => {
-      setCustomerList(resp.data);
-    });
-  };
-
-  /*
-   * Search Customers via AJAX call
-   */
-  const searchCustomers = (query) => {
- 
-    setSearchQuery(query);
-    if (query.trim() === '') {
-      GetCustomersList(); // Reset to full list if query is empty
-      return;
-    }
-
+  const GetCustomersList = (page = 1) => {
     setIsLoading(true);
-    GlobalApi.SearchCustomers(query).then((resp) => {
-      setCustomerList(resp.data);
+    GlobalApi.GetUserCustomers({ page }).then((resp) => {
+      setCustomerList(resp.data.data);
+      setTotalPages(resp.data.last_page);
       setIsLoading(false);
     }).catch(() => {
       setIsLoading(false);
     });
   };
+  
+  const searchCustomers = (query, page = 1) => {
+    setSearchQuery(query);
+    setCurrentPage(page); // Update the page number
+  
+    if (query.trim() === '') {
+      GetCustomersList(page); // Reset to the full list if the search query is empty
+      return;
+    }
+  
+    setIsLoading(true); // Start loading
+  
+    GlobalApi.SearchCustomers(query, page)
+      .then((resp) => {
+        setCustomerList(resp.data.data); // Assuming the response contains 'data' for customers
+        setTotalPages(resp.data.last_page); // Update total pages for pagination
+        setIsLoading(false); // Stop loading
+      })
+      .catch(() => {
+        setIsLoading(false); // Stop loading even if there is an error
+      });
+  };
+  
+  
+  const handlePageChange = (page) => {
+    setCurrentPage(page); 
+    if (searchQuery.trim()) {
+      searchCustomers(searchQuery, page);
+    } else {
+      GetCustomersList(page);
+    }
+  };
+  
 
   return (
     <div className="p-10 md:px-20 lg:px-32">
@@ -71,7 +88,7 @@ function Dashboard() {
           type="text"
           placeholder="Search customers..."
           value={searchQuery}
-          onChange={(e) => searchCustomers(e.target.value)}
+          onChange={(e) => searchCustomers(e.target.value, 1)}
           className="w-full p-2 mb-4 border rounded-lg"
         />
       </div>
@@ -91,7 +108,7 @@ function Dashboard() {
             <CustomerCardItem
               customer={customer}
               key={customer.id}
-              refreshData={GetCustomersList}
+              refreshData={() => GetCustomersList(currentPage)}
             />
           ))
         ) : (
@@ -99,6 +116,21 @@ function Dashboard() {
             No customers found.
           </div>
         )}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center mt-6">
+        {[...Array(totalPages)].map((_, index) => (
+          <button
+            key={index}
+            className={`px-3 py-1 mx-1 border rounded-lg ${
+              currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-100'
+            }`}
+            onClick={() => handlePageChange(index + 1)}
+          >
+            {index + 1}
+          </button>
+        ))}
       </div>
     </div>
   );
