@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import GlobalApi from '../../service/GlobalApi';
 import CustomerCardItem from '@/components/CustomerCardItem';
 
-function Dashboard() {
+function Customers() {
   const { user } = useUser();
   const [customerList, setCustomerList] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -136,4 +136,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Customers;

@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import GlobalApi from '../../../../service/GlobalApi'
 import { RWebShare } from 'react-web-share'
-import CustomerPreview from '@/dashboard/customer/[customerId]/edit/components/CustomerPreview'
+import CustomerPreview from '@/customers/customer/[customerId]/edit/components/CustomerPreview'
 
 function ViewCustomer() {
 

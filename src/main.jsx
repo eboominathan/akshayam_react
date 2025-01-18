@@ -5,10 +5,10 @@ import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import SignInPage from './auth/sign-in'
 import Home from './home'
-import Dashboard from './dashboard'
 import { ClerkProvider } from '@clerk/clerk-react'
-import EditCustomer from './dashboard/customer/[customerId]/edit'
+import EditCustomer from './customers/customer/[customerId]/edit'
 import ViewCustomer from './my-customer/[customerId]/view'
+import Customers from './customers'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!PUBLISHABLE_KEY) {
@@ -20,14 +20,14 @@ const router = createBrowserRouter([
       children: [
         {
           path: '/',
-          element: <Dashboard />,
+          element: <Home />,
         },
         {
-          path: '/dashboard',
-          element: <Dashboard />,
+          path: '/customers',
+          element: <Customers />,
         },
         {
-          path: '/dashboard/customer/:customerId/edit',
+          path: '/customers/:customerId/edit',
           element:<EditCustomer />
         },
       ]

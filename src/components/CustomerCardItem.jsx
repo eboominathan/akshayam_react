@@ -43,7 +43,7 @@ function CustomerCardItem({ customer, refreshData }) {
   return (
     <div className="customer-card">
       {/* Upper Card Section with Link */}
-      <Link to={`/dashboard/customer/${customer.id}/edit`}>
+      <Link to={`/customers/${customer.id}/edit`}>
         <div
           className="p-6 border-t-4 rounded-t-lg customer-card__header bg-gradient-to-b from-pink-100 via-purple-200 to-blue-200"
           style={{ borderColor: customer?.theme_color }}
@@ -77,7 +77,7 @@ function CustomerCardItem({ customer, refreshData }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem
-              onClick={() => navigate(`/dashboard/customer/${customer.id}/edit`)}
+              onClick={() => navigate(`/customers/customer/${customer.id}/edit`)}
             >
               Edit
             </DropdownMenuItem>
