@@ -64,6 +64,17 @@ const Dashboard = () => {
     }
   };
 
+   // Function to handle row deletion with confirmation
+   const handleDeleteRow = (index) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this row?"
+    );
+    if (confirmDelete) {
+      const updatedRows = rows.filter((_, i) => i !== index);
+      setRows(updatedRows);
+    }
+  };
+
   return (
     <div className="min-h-screen p-6 bg-gray-100">
       <h1 className="mb-6 text-3xl font-bold text-gray-700">Dashboard</h1>
@@ -187,7 +198,7 @@ const Dashboard = () => {
                   />
                 </td>
                 <td>
-                  <Button variant="outline" className="text-white bg-red-500">
+                  <Button variant="outline" className="text-white bg-red-500" onClick={() => handleDeleteRow(index)}>
                     Delete
                   </Button>
                 </td>
