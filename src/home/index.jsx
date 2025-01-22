@@ -1,16 +1,11 @@
-import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
+import AsyncSelect from "react-select/async";
+import { Button } from "@/components/ui/button";
+import GlobalApi from '../../service/GlobalApi';
 
 const Dashboard = () => {
-  // Sample data for counters and charts
-  const stats = [
-    { title: "Users", count: 1250, color: "bg-green-500" },
-    { title: "Orders", count: 310, color: "bg-yellow-500" },
-    { title: "Revenue", count: "$45,000", color: "bg-blue-500" },
-    { title: "Ratings", count: 4.8, color: "bg-pink-500" },
-  ];
   const today = new Date().toISOString().split("T")[0];
-  // Table State
+
   const [rows, setRows] = useState([
     {
       id: 1,
@@ -18,13 +13,17 @@ const Dashboard = () => {
       name: "John Doe",
       service: "Consultation",
       amount: 100,
-      customerName: "Alice Johnson",
+      customer: { value: 1, label: "Boomi" }, // Updated to store the full object
       location: "New York",
-      paymentStatus: "Paid", // Default status
+      paymentStatus: "Paid",
     },
   ]);
+  
 
-  // Function to add a new row
+  const [showModal, setShowModal] = useState(false);
+  const [newCustomer, setNewCustomer] = useState("");
+
+  // Add a new row
   const addRow = () => {
     const newRow = {
       id: rows.length + 1,
@@ -32,15 +31,15 @@ const Dashboard = () => {
       name: "",
       service: "",
       amount: 0,
-      customerName: "",
+      customer: { value: 1, label: "Alice Johnson" }, // Updated to store the full object
       location: "",
-      paymentStatus: 2, // Default status for new rows
-      comments: "", // Default status for new rows
+      paymentStatus: "2",
+      comments: "",
     };
     setRows([...rows, newRow]);
   };
 
-  // Function to handle cell updates
+  // Handle cell updates
   const handleInputChange = (index, field, value) => {
     const updatedRows = rows.map((row, i) =>
       i === index ? { ...row, [field]: value } : row
@@ -48,49 +47,44 @@ const Dashboard = () => {
     setRows(updatedRows);
   };
 
-  // Function to return background color based on payment status
-  const getBgColor = (status) => {
-    switch (status) {
-      case "1":
-        return "bg-green-500"; // Green for Paid
-      case "2":
-        return "bg-yellow-500"; // Yellow for Pending
-      case "3":
-        return "bg-orange-500"; // Orange for Partially Paid
-      case "4":
-        return "bg-red-500"; // Red for Not Paid
-      default:
-        return "bg-gray-200"; // Default background color
+
+ 
+
+  const fetchCustomers = async (inputValue) => {
+    if (!inputValue) return [];
+    try {
+      const response = await GlobalApi.SearchCustomers(inputValue, 1);
+      
+      // Ensure response is a valid Response object
+      if (!response.ok) {
+        console.error("Failed to fetch customers:", response.statusText);
+        return [];
+      }
+  
+      const data = await response.json(); // Explicitly parse JSON
+      return data.map((customer) => ({
+        value: customer.id,
+        label: `${customer.first_name} ${customer.last_name || ""}`,
+      }));
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      return [];
     }
   };
+  
+  
 
-   // Function to handle row deletion with confirmation
-   const handleDeleteRow = (index) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this row?"
-    );
-    if (confirmDelete) {
-      const updatedRows = rows.filter((_, i) => i !== index);
-      setRows(updatedRows);
+  // Handle adding a new customer
+  const handleAddCustomer = () => {
+    if (newCustomer.trim()) {
+      setShowModal(false);
+      setNewCustomer("");
     }
   };
 
   return (
     <div className="min-h-screen p-6 bg-gray-100">
       <h1 className="mb-6 text-3xl font-bold text-gray-700">Dashboard</h1>
-
-      {/* Counter Cards */}
-      <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 md:grid-cols-4">
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className={`p-4 rounded-lg shadow-md text-white ${stat.color}`}
-          >
-            <h2 className="text-lg">{stat.title}</h2>
-            <p className="text-2xl font-bold">{stat.count}</p>
-          </div>
-        ))}
-      </div>
 
       {/* Table */}
       <div className="p-6 bg-white rounded-lg shadow-md">
@@ -135,7 +129,7 @@ const Dashboard = () => {
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <textarea
-                    value={row.service} // use `value` instead of `children`
+                    value={row.service}
                     onChange={(e) =>
                       handleInputChange(index, "service", e.target.value)
                     }
@@ -153,15 +147,19 @@ const Dashboard = () => {
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                  <input
-                    type="text"
-                    value={row.customerName}
-                    onChange={(e) =>
-                      handleInputChange(index, "customerName", e.target.value)
-                    }
-                    className="w-full px-2 py-1 border rounded"
-                  />
-                </td>
+  <AsyncSelect
+    cacheOptions
+    loadOptions={fetchCustomers}
+    defaultOptions
+    onChange={(selected) =>
+      handleInputChange(index, "customer", selected)
+    }
+    value={row.customer || null}
+    placeholder="Search or add a customer..."
+    isClearable
+  />
+</td>
+
                 <td className="px-4 py-2 border border-gray-300">
                   <input
                     type="text"
@@ -178,9 +176,7 @@ const Dashboard = () => {
                     onChange={(e) =>
                       handleInputChange(index, "paymentStatus", e.target.value)
                     }
-                    className={`w-full px-2 py-1 border rounded ${getBgColor(
-                      row.paymentStatus
-                    )}`}
+                    className="w-full px-2 py-1 border rounded"
                   >
                     <option value="2">Pending</option>
                     <option value="1">Paid</option>
@@ -190,15 +186,21 @@ const Dashboard = () => {
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <textarea
-                    value={row.comments} // use `value` instead of `children`
+                    value={row.comments}
                     onChange={(e) =>
-                      handleInputChange(index, "service", e.target.value)
+                      handleInputChange(index, "comments", e.target.value)
                     }
                     className="w-full px-2 py-1 border rounded"
                   />
                 </td>
-                <td>
-                  <Button variant="outline" className="text-white bg-red-500" onClick={() => handleDeleteRow(index)}>
+                <td className="px-4 py-2 border border-gray-300">
+                  <Button
+                    variant="outline"
+                    className="text-white bg-red-500"
+                    onClick={() =>
+                      setRows(rows.filter((_, i) => i !== index))
+                    }
+                  >
                     Delete
                   </Button>
                 </td>
@@ -207,6 +209,36 @@ const Dashboard = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Add Customer Modal */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-1/3 p-6 bg-white rounded-lg">
+            <h2 className="mb-4 text-lg font-bold">Add New Customer</h2>
+            <input
+              type="text"
+              value={newCustomer}
+              onChange={(e) => setNewCustomer(e.target.value)}
+              placeholder="Enter customer name"
+              className="w-full px-4 py-2 mb-4 border rounded"
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 mr-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddCustomer}
+                className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+              >
+                Add Customer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
