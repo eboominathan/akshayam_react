@@ -28,7 +28,7 @@ const DeleteCustomerById=(id)=>axiosClient.delete('/customer-details/'+id)
 const UpdateFamilyDetail=(id,data)=>axiosClient.put('/family-details/'+id,data)
 
 /* Street Name suggestions  */
-const fetchSuggestions=(field, query)=>axiosClient.get(`/get-street-names?field=${field}&query=${query}`)
+const fetchSuggestions=(field, query)=>axiosClient.get(`/get-auto-complete?field=${field}&query=${query}`)
 
 /* Search Customer */
 const SearchCustomers = (query, page = 1) =>
