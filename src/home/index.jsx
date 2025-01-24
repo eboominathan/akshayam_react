@@ -9,6 +9,7 @@ const Dashboard = () => {
       id: 1,
       date: "2025-01-01",
       service: "Consultation",
+      description: "test",
       amount: 100,
       first_name: "Alice Johnson",
       street: "New York",
@@ -19,6 +20,9 @@ const Dashboard = () => {
 
   const [suggestions, setSuggestions] = useState({});
   const [showSuggestions, setShowSuggestions] = useState({});
+  const [services, setServices] = useState([]);
+  const [showAddServiceModal, setShowAddServiceModal] = useState(false);
+  const [newService, setNewService] = useState("");
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -27,6 +31,7 @@ const Dashboard = () => {
       id: rows.length + 1,
       date: today,
       service: "",
+      description: "",
       amount: 0,
       first_name: "",
       street: "",
@@ -150,6 +155,18 @@ const Dashboard = () => {
     }
   };
 
+
+  const handleAddNewService = () => {
+    // Add the new service to the list and close the modal
+    if (newService.trim() !== "") {
+      const updatedServices = [...services, newService];
+      setServices(updatedServices);
+      setNewService("");
+      setShowAddServiceModal(false);
+    }
+  };
+  
+
   return (
     <div className="min-h-screen p-6 bg-gray-100">
       <h1 className="mb-6 text-3xl font-bold text-gray-700">Dashboard</h1>
@@ -165,6 +182,7 @@ const Dashboard = () => {
             <tr className="bg-gray-100">
               <th className="px-4 py-2 border border-gray-300">SNO</th>
               <th className="px-4 py-2 border border-gray-300">Date</th>
+              <th className="px-4 py-2 border border-gray-300">Service</th>
               <th className="px-4 py-2 border border-gray-300">Description</th>
               <th className="px-4 py-2 border border-gray-300">Customer</th>
               <th className="px-4 py-2 border border-gray-300">Location</th>
@@ -187,9 +205,30 @@ const Dashboard = () => {
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                  <textarea
+                  <select
                     value={row.service}
-                    onChange={(e) => handleInputChange(index, "service", e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value === "add-new-service") {
+                        setShowAddServiceModal(true);
+                      } else {
+                        handleInputChange(index, "service", e.target.value);
+                      }
+                    }}
+                    className={`w-full px-2 py-1 border rounded`}
+                  >
+                    <option value="">Select a service</option>
+                    {services.map((service, idx) => (
+                      <option key={idx} value={service}>
+                        {service}
+                      </option>
+                    ))}
+                    <option value="add-new-service">Add New Service</option>
+                  </select>
+                </td>
+                <td className="px-4 py-2 border border-gray-300">
+                  <textarea
+                    value={row.description}
+                    onChange={(e) => handleInputChange(index, "description", e.target.value)}
                     className="w-full px-2 py-1 border rounded"
                   />
                 </td>
@@ -239,8 +278,39 @@ const Dashboard = () => {
           </tbody>
         </table>
       </div>
-    </div>
+       {/* Add Service Modal */}
+       {showAddServiceModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="p-6 bg-white rounded-lg shadow-md">
+            <h2 className="mb-4 text-lg font-semibold">Add New Service</h2>
+            <Input
+              value={newService}
+              onChange={(e) => setNewService(e.target.value)}
+              placeholder="Enter service name"
+              className="w-full mb-4"
+            />
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setShowAddServiceModal(false)}
+                className="mr-2 bg-gray-500 hover:bg-gray-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddNewService}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                Add Service
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>    
   );
 };
+
+
+
 
 export default Dashboard;
