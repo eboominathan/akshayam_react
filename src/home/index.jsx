@@ -1,14 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Select from "react-select"; // Import react-select
 import GlobalApi from "../../service/GlobalApi";
 
 const Dashboard = () => {
+
+    // Fetch categories on component mount
+    useEffect(() => {
+      fetchAllCategories();
+    }, []);
+
   const [rows, setRows] = useState([
     {
       id: 1,
       date: "2025-01-01",
-      service: "Consultation",
+      category: null,
       description: "test",
       amount: 100,
       first_name: "Alice Johnson",
@@ -20,7 +27,7 @@ const Dashboard = () => {
 
   const [suggestions, setSuggestions] = useState({});
   const [showSuggestions, setShowSuggestions] = useState({});
-  const [services, setServices] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [newService, setNewService] = useState("");
 
@@ -30,7 +37,7 @@ const Dashboard = () => {
     const newRow = {
       id: rows.length + 1,
       date: today,
-      service: "",
+      category: null,
       description: "",
       amount: 0,
       first_name: "",
@@ -46,6 +53,20 @@ const Dashboard = () => {
       i === index ? { ...row, [field]: value } : row
     );
     setRows(updatedRows);
+  };
+
+  const fetchAllCategories = () => {
+    GlobalApi.GetAllCategories()
+      .then((response) => {
+        const options = response.data.map((category) => ({
+          value: category.id,
+          label: category.name,
+        }));
+        setCategories(options);
+      })
+      .catch(() => {
+        setCategories([]);
+      });
   };
 
   const fetchSuggestions = (index, field, query) => {
@@ -205,25 +226,26 @@ const Dashboard = () => {
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                  <select
-                    value={row.service}
-                    onChange={(e) => {
-                      if (e.target.value === "add-new-service") {
-                        setShowAddServiceModal(true);
-                      } else {
-                        handleInputChange(index, "service", e.target.value);
-                      }
-                    }}
-                    className={`w-full px-2 py-1 border rounded`}
-                  >
-                    <option value="">Select a service</option>
-                    {services.map((service, idx) => (
-                      <option key={idx} value={service}>
-                        {service}
-                      </option>
-                    ))}
-                    <option value="add-new-service">Add New Service</option>
-                  </select>
+                <select
+  value={row.service}
+  onChange={(e) => {
+    if (e.target.value === "add-new-service") {
+      setShowAddServiceModal(true);
+    } else {
+      handleInputChange(index, "service", e.target.value);
+    }
+  }}
+  className="w-full px-2 py-1 border rounded"
+>
+  <option value="">Select a service</option>
+  {categories.map((category) => (
+    <option key={category.value} value={category.value}>
+      {category.label}
+    </option>
+  ))}
+  <option value="add-new-service">Add New Service</option>
+</select>
+
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <textarea

@@ -34,6 +34,9 @@ const fetchSuggestions=(field, query)=>axiosClient.get(`/get-auto-complete?field
 const SearchCustomers = (query, page = 1) =>
     axiosClient.get(`/get-customer`, { params: { query, page } });
 
+
+const GetAllCategories = (params = {}) => axiosClient.get('/categories', { params });
+
 export default{
     RegisterUser,
     CreateNewCustomer,
@@ -43,5 +46,6 @@ export default{
     DeleteCustomerById,
     UpdateFamilyDetail,
     fetchSuggestions,
-    SearchCustomers 
+    SearchCustomers,
+    GetAllCategories 
 }
