@@ -5,11 +5,9 @@ import Select from "react-select"; // Import react-select
 import GlobalApi from "../../service/GlobalApi";
 
 const Dashboard = () => {
-
-    // Fetch categories on component mount
-    useEffect(() => {
-      fetchAllCategories();
-    }, []);
+  useEffect(() => {
+    fetchAllCategories();
+  }, []);
 
   const [rows, setRows] = useState([
     {
@@ -25,8 +23,6 @@ const Dashboard = () => {
     },
   ]);
 
-  const [suggestions, setSuggestions] = useState({});
-  const [showSuggestions, setShowSuggestions] = useState({});
   const [categories, setCategories] = useState([]);
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [newService, setNewService] = useState("");
@@ -69,96 +65,13 @@ const Dashboard = () => {
       });
   };
 
-  const fetchSuggestions = (index, field, query) => {
-    if (query.length > 2) {
-      GlobalApi.fetchSuggestions(field, query)
-        .then((response) => {
-          setSuggestions((prev) => ({
-            ...prev,
-            [`${index}-${field}`]: response.data,
-          }));
-          setShowSuggestions((prev) => ({
-            ...prev,
-            [`${index}-${field}`]: true,
-          }));
-        })
-        .catch(() => {
-          setSuggestions((prev) => ({ ...prev, [`${index}-${field}`]: [] }));
-          setShowSuggestions((prev) => ({
-            ...prev,
-            [`${index}-${field}`]: false,
-          }));
-        });
-    } else {
-      setSuggestions((prev) => ({ ...prev, [`${index}-${field}`]: [] }));
-      setShowSuggestions((prev) => ({ ...prev, [`${index}-${field}`]: false }));
+  const handleAddNewService = () => {
+    if (newService.trim() !== "") {
+      const newOption = { value: newService, label: newService };
+      setCategories([...categories, newOption]);
+      setNewService("");
+      setShowAddServiceModal(false);
     }
-  };
-
-  const handleSuggestionClick = (index, field, suggestion) => {
-    handleInputChange(index, field, suggestion);
-    setShowSuggestions((prev) => ({ ...prev, [`${index}-${field}`]: false }));
-  };
-
-  const renderAutocompleteInput = (index, field, value) => {
-    const key = `${index}-${field}`;
-    return (
-      <div className="relative">
-        <Input
-          value={value}
-          onChange={(e) => {
-            handleInputChange(index, field, e.target.value);
-            fetchSuggestions(index, field, e.target.value);
-          }}
-          onFocus={() => {
-            setShowSuggestions((prev) => ({
-              ...prev,
-              [key]: suggestions[key]?.length > 0,
-            }));
-          }}
-          onBlur={() => {
-            setTimeout(() => {
-              setShowSuggestions((prev) => ({ ...prev, [key]: false }));
-            }, 300);
-          }}
-        />
- 
-        {showSuggestions[key] && (
-          <div className="absolute z-10 w-full overflow-y-auto bg-white border rounded shadow max-h-40">
-            {suggestions[key]?.length ? (
-              suggestions[key].map((suggestion, idx) => (
-                <div
-                  key={idx}
-                  className="px-4 py-2 cursor-pointer hover:bg-gray-200"
-                  onClick={() => handleSuggestionClick(index, field, suggestion)}
-                >
-                  {suggestion}
-                </div>
-              ))
-            ) : (
-              <div className="px-4 py-2 text-gray-500">No suggestions found</div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const handleDeleteRow = (index) => {
-    const updatedRows = rows.filter((_, i) => i !== index);
-    setRows(updatedRows);
-
-    // Cleanup suggestions and showSuggestions states for the deleted row
-    const newSuggestions = { ...suggestions };
-    const newShowSuggestions = { ...showSuggestions };
-    Object.keys(suggestions).forEach((key) => {
-      if (key.startsWith(`${index}-`)) {
-        delete newSuggestions[key];
-        delete newShowSuggestions[key];
-      }
-    });
-    setSuggestions(newSuggestions);
-    setShowSuggestions(newShowSuggestions);
   };
 
   const getBgColor = (status) => {
@@ -176,24 +89,14 @@ const Dashboard = () => {
     }
   };
 
-
-  const handleAddNewService = () => {
-    // Add the new service to the list and close the modal
-    if (newService.trim() !== "") {
-      const updatedServices = [...services, newService];
-      setServices(updatedServices);
-      setNewService("");
-      setShowAddServiceModal(false);
-    }
-  };
-  
-
   return (
     <div className="min-h-screen p-6 bg-gray-100">
       <h1 className="mb-6 text-3xl font-bold text-gray-700">Dashboard</h1>
       <div className="p-6 bg-white rounded-lg shadow-md">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-700">Service Details</h3>
+          <h3 className="text-lg font-semibold text-gray-700">
+            Service Details
+          </h3>
           <Button onClick={addRow} className="bg-blue-500 hover:bg-blue-600">
             Add More
           </Button>
@@ -221,58 +124,85 @@ const Dashboard = () => {
                   <input
                     type="date"
                     value={row.date}
-                    onChange={(e) => handleInputChange(index, "date", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(index, "date", e.target.value)
+                    }
                     className="w-full px-2 py-1 border rounded"
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                <select
-  value={row.service}
-  onChange={(e) => {
-    if (e.target.value === "add-new-service") {
-      setShowAddServiceModal(true);
-    } else {
-      handleInputChange(index, "service", e.target.value);
-    }
-  }}
-  className="w-full px-2 py-1 border rounded"
->
-  <option value="">Select a service</option>
-  {categories.map((category) => (
-    <option key={category.value} value={category.value}>
-      {category.label}
-    </option>
-  ))}
-  <option value="add-new-service">Add New Service</option>
-</select>
-
+                  <Select
+                    value={
+                      categories.find((c) => c.value === row.category) || null
+                    } // Ensure value is null if no category is selected
+                    onChange={(selectedOption) => {
+                      if (!selectedOption) {
+                        // Clear the selection
+                        handleInputChange(index, "category", null);
+                      } else if (selectedOption.value === "add-new-service") {
+                        // Open the "Add New Service" modal
+                        setShowAddServiceModal(true);
+                      } else {
+                        // Set the selected category
+                        handleInputChange(
+                          index,
+                          "category",
+                          selectedOption.value
+                        );
+                      }
+                    }}
+                    options={[
+                      ...categories,
+                      { value: "add-new-service", label: "Add New Service" },
+                    ]}
+                    isClearable // Enable clear functionality
+                    placeholder="Select a service"
+                  />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <textarea
                     value={row.description}
-                    onChange={(e) => handleInputChange(index, "description", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(index, "description", e.target.value)
+                    }
                     className="w-full px-2 py-1 border rounded"
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                  {renderAutocompleteInput(index, "first_name", row.first_name)}
+                  <Input
+                    value={row.first_name}
+                    onChange={(e) =>
+                      handleInputChange(index, "first_name", e.target.value)
+                    }
+                  />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                  {renderAutocompleteInput(index, "street", row.street)}
+                  <Input
+                    value={row.street}
+                    onChange={(e) =>
+                      handleInputChange(index, "street", e.target.value)
+                    }
+                  />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <input
                     type="number"
                     value={row.amount}
-                    onChange={(e) => handleInputChange(index, "amount", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(index, "amount", e.target.value)
+                    }
                     className="w-full px-2 py-1 border rounded"
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <select
                     value={row.paymentStatus}
-                    onChange={(e) => handleInputChange(index, "paymentStatus", e.target.value)}
-                    className={`w-full px-2 py-1 border rounded ${getBgColor(row.paymentStatus)}`}
+                    onChange={(e) =>
+                      handleInputChange(index, "paymentStatus", e.target.value)
+                    }
+                    className={`w-full px-2 py-1 border rounded ${getBgColor(
+                      row.paymentStatus
+                    )}`}
                   >
                     <option value="Pending">Pending</option>
                     <option value="Paid">Paid</option>
@@ -283,13 +213,15 @@ const Dashboard = () => {
                 <td className="px-4 py-2 border border-gray-300">
                   <textarea
                     value={row.comments}
-                    onChange={(e) => handleInputChange(index, "comments", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(index, "comments", e.target.value)
+                    }
                     className="w-full px-2 py-1 border rounded"
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <Button
-                    onClick={() => handleDeleteRow(index)}
+                    onClick={() => setRows(rows.filter((_, i) => i !== index))}
                     className="text-white bg-red-500"
                   >
                     Delete
@@ -300,8 +232,8 @@ const Dashboard = () => {
           </tbody>
         </table>
       </div>
-       {/* Add Service Modal */}
-       {showAddServiceModal && (
+      {/* Add Service Modal */}
+      {showAddServiceModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="p-6 bg-white rounded-lg shadow-md">
             <h2 className="mb-4 text-lg font-semibold">Add New Service</h2>
@@ -328,11 +260,8 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-    </div>    
+    </div>
   );
 };
-
-
-
 
 export default Dashboard;
