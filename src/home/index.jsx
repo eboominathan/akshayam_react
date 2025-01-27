@@ -26,6 +26,9 @@ const Dashboard = () => {
   const [categories, setCategories] = useState([]);
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [newService, setNewService] = useState("");
+  const [currentRowIndex, setCurrentRowIndex] = useState(null); // Track the row index
+  const [errorMessage, setErrorMessage] = useState(null);
+
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -65,14 +68,50 @@ const Dashboard = () => {
       });
   };
 
+
+
   const handleAddNewService = () => {
     if (newService.trim() !== "") {
-      const newOption = { value: newService, label: newService };
-      setCategories([...categories, newOption]);
-      setNewService("");
-      setShowAddServiceModal(false);
+      const data = {
+        name: newService,
+      };
+  
+      GlobalApi.CreateNewCategory(data).then(
+        (resp) => {
+          if (resp) {
+            const newOption = { value: resp.data.id, label: resp.data.name };
+            setCategories([...categories, newOption]);
+  
+            // Update the selected category in the row where "Add New Service" was triggered
+            if (currentRowIndex !== null) {
+              const updatedRows = rows.map((row, index) =>
+                index === currentRowIndex
+                  ? { ...row, category: resp.data.id }
+                  : row
+              );
+              setRows(updatedRows);
+            }
+  
+            setNewService("");
+            setShowAddServiceModal(false);
+            setErrorMessage(null); // Clear any existing error messages
+          }
+        },
+        (error) => {
+          // Handle validation errors
+          if (error.response && error.response.status === 422) {
+            const validationErrors = error.response.data.errors;
+            setErrorMessage(
+              validationErrors.name ? validationErrors.name[0] : "An error occurred"
+            );
+          } else {
+            setErrorMessage("An unexpected error occurred. Please try again.");
+          }
+        }
+      );
     }
   };
+  
 
   const getBgColor = (status) => {
     switch (status) {
@@ -131,33 +170,25 @@ const Dashboard = () => {
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                  <Select
-                    value={
-                      categories.find((c) => c.value === row.category) || null
-                    } // Ensure value is null if no category is selected
-                    onChange={(selectedOption) => {
-                      if (!selectedOption) {
-                        // Clear the selection
-                        handleInputChange(index, "category", null);
-                      } else if (selectedOption.value === "add-new-service") {
-                        // Open the "Add New Service" modal
-                        setShowAddServiceModal(true);
-                      } else {
-                        // Set the selected category
-                        handleInputChange(
-                          index,
-                          "category",
-                          selectedOption.value
-                        );
-                      }
-                    }}
-                    options={[
-                      ...categories,
-                      { value: "add-new-service", label: "Add New Service" },
-                    ]}
-                    isClearable // Enable clear functionality
-                    placeholder="Select a service"
-                  />
+                <Select
+  value={categories.find((c) => c.value === row.category) || null}
+  onChange={(selectedOption) => {
+    if (!selectedOption) {
+      handleInputChange(index, "category", null); // Clear the selection
+    } else if (selectedOption.value === "add-new-service") {
+      setCurrentRowIndex(index); // Track which row triggered "Add New Service"
+      setShowAddServiceModal(true);
+    } else {
+      handleInputChange(index, "category", selectedOption.value);
+    }
+  }}
+  options={[
+    ...categories,
+    { value: "add-new-service", label: "Add New Service" },
+  ]}
+  isClearable
+  placeholder="Select a service"
+/>
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <textarea
@@ -234,32 +265,41 @@ const Dashboard = () => {
       </div>
       {/* Add Service Modal */}
       {showAddServiceModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="p-6 bg-white rounded-lg shadow-md">
-            <h2 className="mb-4 text-lg font-semibold">Add New Service</h2>
-            <Input
-              value={newService}
-              onChange={(e) => setNewService(e.target.value)}
-              placeholder="Enter service name"
-              className="w-full mb-4"
-            />
-            <div className="flex justify-end">
-              <Button
-                onClick={() => setShowAddServiceModal(false)}
-                className="mr-2 bg-gray-500 hover:bg-gray-600"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddNewService}
-                className="bg-blue-500 hover:bg-blue-600"
-              >
-                Add Service
-              </Button>
-            </div>
-          </div>
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="p-6 bg-white rounded-lg shadow-md">
+      <h2 className="mb-4 text-lg font-semibold">Add New Service</h2>
+      {errorMessage && (
+        <div className="mb-4 text-sm text-red-600">
+          {errorMessage}
         </div>
       )}
+      <Input
+        value={newService}
+        onChange={(e) => setNewService(e.target.value)}
+        placeholder="Enter service name"
+        className="w-full mb-4"
+      />
+      <div className="flex justify-end">
+        <Button
+          onClick={() => {
+            setShowAddServiceModal(false);
+            setErrorMessage(null); // Clear error message on cancel
+          }}
+          className="mr-2 bg-gray-500 hover:bg-gray-600"
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleAddNewService}
+          className="bg-blue-500 hover:bg-blue-600"
+        >
+          Add Service
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
