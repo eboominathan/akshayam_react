@@ -220,7 +220,7 @@ const Dashboard = () => {
                     type="number"
                     value={row.amount}
                     onChange={(e) =>
-                      handleInputChange(index, "amount", e.target.value)
+                      handleInputChange(index, "amount", e.target.value) 
                     }
                     className="w-full px-2 py-1 border rounded"
                   />
