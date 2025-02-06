@@ -33,7 +33,7 @@ function AddCustomer() {
       (resp) => {       
         if(resp){
             setLoading(false);
-            navigation(`/customers/customer/${resp.data.id}/edit`);
+            navigation(`/customers/${resp.data.id}/edit`);
         }
       },
       (error) => {

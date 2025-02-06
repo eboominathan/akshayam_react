@@ -36,7 +36,7 @@ const SearchCustomers = (query, page = 1) =>
 
 
 const GetAllCategories = (params = {}) => axiosClient.get('/categories', { params });
-const CreateNewCategory=(data)=>axiosClient.post('/categories',data);
+const CreateNewCategory=(data)=>axiosClient.post('/categories',data); 
 
 export default{
     RegisterUser,
@@ -49,5 +49,5 @@ export default{
     fetchSuggestions,
     SearchCustomers,
     GetAllCategories,
-    CreateNewCategory 
+    CreateNewCategory    
 }

@@ -44,28 +44,38 @@ function Customers() {
     });
   };
   
-  const searchCustomers = (query, page = 1) => {
-    setSearchQuery(query);
-    setCurrentPage(page); // Update the page number
-  
-    if (query.trim() === '') {
-      GetCustomersList(page); // Reset to the full list if the search query is empty
-      return;
-    }
-  
-    setIsLoading(true); // Start loading
-  
-    GlobalApi.SearchCustomers(query, page)
-      .then((resp) => {
-        setCustomerList(resp.data.data); // Assuming the response contains 'data' for customers
-        setTotalPages(resp.data.last_page); // Update total pages for pagination
-        setIsLoading(false); // Stop loading
-      })
-      .catch(() => {
-        setIsLoading(false); // Stop loading even if there is an error
-      });
-  };
-  
+  try {
+    // Call your API with search and pagination parameters
+    const response = await GlobalApi.SearchCustomers({
+      search: searchQuery,
+      page: page || 1,
+      perPage: 10 // Match the per_page value in your API
+    });
+
+    // Transform the API response into the format expected by AsyncPaginate
+    const options = response.data.data.map(customer => ({
+      value: customer.id, // Use customer ID as the value
+      label: `${customer.first_name} ${customer.last_name}`, // Combine first and last name for display
+      customerData: customer // Include the full customer object for reference
+    }));
+
+    return {
+      options: options,
+      hasMore: response.data.current_page < response.data.last_page, // Check if there are more pages
+      additional: {
+        page: page ? page + 1 : 2 // Increment page for next load
+      }
+    };
+  } catch (error) {
+    console.error("Error loading customers:", error);
+    return {
+      options: [],
+      hasMore: false
+    };
+  }
+};
+
+
   
   const handlePageChange = (page) => {
     setCurrentPage(page); 
@@ -134,6 +144,6 @@ function Customers() {
       </div>
     </div>
   );
-}
+ 
 
 export default Customers;

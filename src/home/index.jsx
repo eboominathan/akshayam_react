@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import React, { useEffect, useState } from "react";
-import Select from "react-select"; // Import react-select
+import Select from "react-select";
 import GlobalApi from "../../service/GlobalApi";
+import { AsyncPaginate } from 'react-select-async-paginate';
 
 const Dashboard = () => {
   useEffect(() => {
-    fetchAllCategories();
+    fetchAllCategories(); 
   }, []);
 
   const [rows, setRows] = useState([
@@ -17,6 +18,7 @@ const Dashboard = () => {
       description: "test",
       amount: 100,
       first_name: "Alice Johnson",
+      customer_id: 1,
       street: "New York",
       paymentStatus: "Paid",
       comments: "",
@@ -24,13 +26,41 @@ const Dashboard = () => {
   ]);
 
   const [categories, setCategories] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [newService, setNewService] = useState("");
-  const [currentRowIndex, setCurrentRowIndex] = useState(null); // Track the row index
+  const [currentRowIndex, setCurrentRowIndex] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
-
   const today = new Date().toISOString().split("T")[0];
+  const [customersCache, setCustomersCache] = useState({});
+
+  const loadCustomerOptions = async (searchQuery, loadedOptions, { page }) => {
+    try {
+      const response = await GlobalApi.SearchCustomers(searchQuery,page);
+
+      const options = response.data.data.map(customer => ({
+        value: customer.id,
+        label: customer.first_name
+      }));
+
+      return {
+        options: options,
+        hasMore: response.data.meta.current_page < response.data.meta.last_page,
+        additional: {
+          page: page ? page + 1 : 2
+        }
+      };
+    } catch (error) {
+      console.error("Error loading customers:", error);
+      return {
+        options: [],
+        hasMore: false
+      };
+    }
+  };
+
+  
 
   const addRow = () => {
     const newRow = {
@@ -40,6 +70,7 @@ const Dashboard = () => {
       description: "",
       amount: 0,
       first_name: "",
+      customer_id: null,
       street: "",
       paymentStatus: "Pending",
       comments: "",
@@ -68,21 +99,19 @@ const Dashboard = () => {
       });
   };
 
-
-
+ 
   const handleAddNewService = () => {
     if (newService.trim() !== "") {
       const data = {
         name: newService,
       };
-  
+
       GlobalApi.CreateNewCategory(data).then(
         (resp) => {
           if (resp) {
             const newOption = { value: resp.data.id, label: resp.data.name };
             setCategories([...categories, newOption]);
-  
-            // Update the selected category in the row where "Add New Service" was triggered
+
             if (currentRowIndex !== null) {
               const updatedRows = rows.map((row, index) =>
                 index === currentRowIndex
@@ -91,14 +120,13 @@ const Dashboard = () => {
               );
               setRows(updatedRows);
             }
-  
+
             setNewService("");
             setShowAddServiceModal(false);
-            setErrorMessage(null); // Clear any existing error messages
+            setErrorMessage(null);
           }
         },
         (error) => {
-          // Handle validation errors
           if (error.response && error.response.status === 422) {
             const validationErrors = error.response.data.errors;
             setErrorMessage(
@@ -111,7 +139,6 @@ const Dashboard = () => {
       );
     }
   };
-  
 
   const getBgColor = (status) => {
     switch (status) {
@@ -170,25 +197,25 @@ const Dashboard = () => {
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                <Select
-  value={categories.find((c) => c.value === row.category) || null}
-  onChange={(selectedOption) => {
-    if (!selectedOption) {
-      handleInputChange(index, "category", null); // Clear the selection
-    } else if (selectedOption.value === "add-new-service") {
-      setCurrentRowIndex(index); // Track which row triggered "Add New Service"
-      setShowAddServiceModal(true);
-    } else {
-      handleInputChange(index, "category", selectedOption.value);
-    }
-  }}
-  options={[
-    ...categories,
-    { value: "add-new-service", label: "Add New Service" },
-  ]}
-  isClearable
-  placeholder="Select a service"
-/>
+                  <Select
+                    value={categories.find((c) => c.value === row.category) || null}
+                    onChange={(selectedOption) => {
+                      if (!selectedOption) {
+                        handleInputChange(index, "category", null);
+                      } else if (selectedOption.value === "add-new-service") {
+                        setCurrentRowIndex(index);
+                        setShowAddServiceModal(true);
+                      } else {
+                        handleInputChange(index, "category", selectedOption.value);
+                      }
+                    }}
+                    options={[
+                      ...categories,
+                      { value: "add-new-service", label: "Add New Service" },
+                    ]}
+                    isClearable
+                    placeholder="Select a service"
+                  />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <textarea
@@ -200,12 +227,30 @@ const Dashboard = () => {
                   />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
-                  <Input
-                    value={row.first_name}
-                    onChange={(e) =>
-                      handleInputChange(index, "first_name", e.target.value)
-                    }
-                  />
+                <AsyncPaginate
+                value={row.customer_id ? { 
+                  value: row.customer_id, 
+                  label: row.first_name 
+                } : null}
+                loadOptions={loadCustomerOptions}
+                onChange={(selectedOption) => {
+                  if (selectedOption) {
+                    handleInputChange(index, "customer_id", selectedOption.value);
+                    handleInputChange(index, "first_name", selectedOption.label);
+                  } else {
+                    handleInputChange(index, "customer_id", null);
+                    handleInputChange(index, "first_name", "");
+                  }
+                }}
+                debounceTimeout={500}
+                additional={{
+                  page: 1
+                }}
+                placeholder="Search customer..."
+                isClearable
+                className="react-select-container"
+                classNamePrefix="react-select"
+              />
                 </td>
                 <td className="px-4 py-2 border border-gray-300">
                   <Input
@@ -220,7 +265,7 @@ const Dashboard = () => {
                     type="number"
                     value={row.amount}
                     onChange={(e) =>
-                      handleInputChange(index, "amount", e.target.value) 
+                      handleInputChange(index, "amount", e.target.value)
                     }
                     className="w-full px-2 py-1 border rounded"
                   />
@@ -263,43 +308,41 @@ const Dashboard = () => {
           </tbody>
         </table>
       </div>
-      {/* Add Service Modal */}
       {showAddServiceModal && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="mb-4 text-lg font-semibold">Add New Service</h2>
-      {errorMessage && (
-        <div className="mb-4 text-sm text-red-600">
-          {errorMessage}
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="p-6 bg-white rounded-lg shadow-md">
+            <h2 className="mb-4 text-lg font-semibold">Add New Service</h2>
+            {errorMessage && (
+              <div className="mb-4 text-sm text-red-600">
+                {errorMessage}
+              </div>
+            )}
+            <Input
+              value={newService}
+              onChange={(e) => setNewService(e.target.value)}
+              placeholder="Enter service name"
+              className="w-full mb-4"
+            />
+            <div className="flex justify-end">
+              <Button
+                onClick={() => {
+                  setShowAddServiceModal(false);
+                  setErrorMessage(null);
+                }}
+                className="mr-2 bg-gray-500 hover:bg-gray-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddNewService}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                Add Service
+              </Button>
+            </div>
+          </div>
         </div>
       )}
-      <Input
-        value={newService}
-        onChange={(e) => setNewService(e.target.value)}
-        placeholder="Enter service name"
-        className="w-full mb-4"
-      />
-      <div className="flex justify-end">
-        <Button
-          onClick={() => {
-            setShowAddServiceModal(false);
-            setErrorMessage(null); // Clear error message on cancel
-          }}
-          className="mr-2 bg-gray-500 hover:bg-gray-600"
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleAddNewService}
-          className="bg-blue-500 hover:bg-blue-600"
-        >
-          Add Service
-        </Button>
-      </div>
-    </div>
-  </div>
-)}
-
     </div>
   );
 };
