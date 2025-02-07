@@ -41,7 +41,7 @@ const Dashboard = () => {
 
       const options = response.data.data.map(customer => ({
         value: customer.id,
-        label: customer.first_name
+        label: customer.first_name+' '+customer.last_name+' '+customer.street
       }));
 
       return {
@@ -237,9 +237,11 @@ const Dashboard = () => {
                   if (selectedOption) {
                     handleInputChange(index, "customer_id", selectedOption.value);
                     handleInputChange(index, "first_name", selectedOption.label);
+                    handleInputChange(index, "street", selectedOption.label.split(' ').slice(2).join(' ')); // Location
                   } else {
                     handleInputChange(index, "customer_id", null);
                     handleInputChange(index, "first_name", "");
+                    handleInputChange(index, "street", "");
                   }
                 }}
                 debounceTimeout={500}
