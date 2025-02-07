@@ -33,59 +33,58 @@ function Customers() {
     }
   }, [user, RegisterUser, currentPage]);
 
+  /**
+   * Fetch customer list with pagination
+   */
   const GetCustomersList = (page = 1) => {
     setIsLoading(true);
-    GlobalApi.GetUserCustomers({ page }).then((resp) => {
-      setCustomerList(resp.data.data);
-      setTotalPages(resp.data.last_page);
-      setIsLoading(false);
-    }).catch(() => {
-      setIsLoading(false);
-    });
+    GlobalApi.GetUserCustomers({ page })
+      .then((resp) => {
+        if (resp.data && resp.data.data) {
+          setCustomerList(resp.data.data);
+          setTotalPages(resp.data.last_page || 1);
+        }
+      })
+      .catch(() => setCustomerList([]))
+      .finally(() => setIsLoading(false));
   };
-  
-  try {
-    // Call your API with search and pagination parameters
-    const response = await GlobalApi.SearchCustomers({
-      search: searchQuery,
-      page: page || 1,
-      perPage: 10 // Match the per_page value in your API
-    });
 
-    // Transform the API response into the format expected by AsyncPaginate
-    const options = response.data.data.map(customer => ({
-      value: customer.id, // Use customer ID as the value
-      label: `${customer.first_name} ${customer.last_name}`, // Combine first and last name for display
-      customerData: customer // Include the full customer object for reference
-    }));
+  /**
+   * Search Customers via API
+   */
+  const searchCustomers = (query, page = 1) => {
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      GetCustomersList(page);
+      return;
+    }
 
-    return {
-      options: options,
-      hasMore: response.data.current_page < response.data.last_page, // Check if there are more pages
-      additional: {
-        page: page ? page + 1 : 2 // Increment page for next load
-      }
-    };
-  } catch (error) {
-    console.error("Error loading customers:", error);
-    return {
-      options: [],
-      hasMore: false
-    };
-  }
-};
+    setIsLoading(true);
+    GlobalApi.SearchCustomers({ search: query, page })
+      .then((resp) => {
+        if (resp.data && Array.isArray(resp.data.data)) {
+          setCustomerList(resp.data.data);
+          setTotalPages(resp.data.last_page || 1);
+        } else {
+          setCustomerList([]);
+        }
+      })
+      .catch(() => setCustomerList([]))
+      .finally(() => setIsLoading(false));
+  };
 
-
-  
+  /**
+   * Handle pagination changes
+   */
   const handlePageChange = (page) => {
-    setCurrentPage(page); 
+    setCurrentPage(page);
     if (searchQuery.trim()) {
       searchCustomers(searchQuery, page);
     } else {
       GetCustomersList(page);
     }
   };
-  
 
   return (
     <div className="p-10 md:px-20 lg:px-32">
@@ -144,6 +143,6 @@ function Customers() {
       </div>
     </div>
   );
- 
+}
 
 export default Customers;

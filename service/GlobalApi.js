@@ -31,8 +31,11 @@ const UpdateFamilyDetail=(id,data)=>axiosClient.put('/family-details/'+id,data)
 const fetchSuggestions=(field, query)=>axiosClient.get(`/get-auto-complete?field=${field}&query=${query}`)
 
 /* Search Customer */
-const SearchCustomers = (query, page = 1) =>
-    axiosClient.get(`/get-customer`, { params: { query, page } });
+const SearchCustomers = (query) =>
+    axiosClient.get(`/get-customer`, { 
+        params: { query: query.search, page: query.page } 
+    });
+
 
 
 const GetAllCategories = (params = {}) => axiosClient.get('/categories', { params });

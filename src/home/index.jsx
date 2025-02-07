@@ -37,7 +37,7 @@ const Dashboard = () => {
 
   const loadCustomerOptions = async (searchQuery, loadedOptions, { page }) => {
     try {
-      const response = await GlobalApi.SearchCustomers(searchQuery,page);
+      const response = await GlobalApi.SearchCustomers({ search: searchQuery, page });
 
       const options = response.data.data.map(customer => ({
         value: customer.id,
@@ -46,7 +46,7 @@ const Dashboard = () => {
 
       return {
         options: options,
-        hasMore: response.data.meta.current_page < response.data.meta.last_page,
+        hasMore: response.data.current_page < response.data.last_page,
         additional: {
           page: page ? page + 1 : 2
         }

@@ -164,8 +164,7 @@ function PersonalDetail({ enableNext }) {
           <div>
             <label className="text-sm font-bold">Email</label>
             <Input
-              name="email"
-              required
+              name="email"              
               onChange={handleInputChange}
               defaultValue={customerInfo?.email}
             />
